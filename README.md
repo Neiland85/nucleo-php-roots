@@ -1,30 +1,40 @@
-# NÚCLEO — kernel PHP
+# NÚCLEO — kernel PHP (`clarity/nucleo` 0.2.0)
 
-Paquete de ejecución de la tesis. No es el briefing (eso es significado). No es
-`alquiler-equipos-sonido` (eso es otro producto).
+Paquete de ejecución. No es el briefing. No es `alquiler-equipos-sonido`.
 
 ```
-AGENT → INTENT → DELEGATION → CAPABILITY → POLICY
-     → AUTHORIZATION → EXECUTION → VERIFICATION
-     → RECONCILIATION → EVIDENCE
+UNTRUSTED INPUT → CONTENT BOUNDARY → LLM propone
+  → CAPABILITY GATE → POLICY → AUTHORIZATION
+  → ADAPTER → VERIFICATION → RECONCILIATION → EVIDENCE
 ```
 
-Un agente comprometido no compromete el dominio, la infraestructura ni el tesoro.
+El modelo interpreta datos. No adquiere autoridad por interpretarlos.
 
-## Frontera
+## Tres artefactos
 
-| Artefacto | Qué es | Qué no es |
+| Artefacto | Rol | Qué no es |
 |---|---|---|
 | Briefing NÚCLEO | Significado, mapa, laboratorio | Código de dominio PHP |
-| `clarity/nucleo` | Contratos, hold-pipe, evidencia | Symfony, Stripe, SQL |
+| `clarity/nucleo` | Contratos ejecutables y tests de frontera | Symfony, Stripe, SQL |
 | alquiler-equipos-sonido | Producto de alquiler de sonido | Turismo, ni este kernel |
 
-Si el producto de alquiler quiere estas fronteras, las **requiere**. No las absorbe.
+El producto **requiere** este paquete. No lo absorbe en `src/`.
+
+`Context\*` aquí es hipótesis de corte (invariantes). No es el catálogo de altavoces.
+
+## Certificar
 
 ```bash
 composer install
-vendor/bin/phpunit
+composer test
 ```
 
-Los tests de `tests/BoundariesTest.php` fallan el día que un contexto importe a otro,
-o que el dominio mencione Stripe, PDO o HttpRequest.
+Falla el día que:
+
+- un contexto importe a otro
+- el dominio nombre Stripe, PDO o HttpRequest
+- contenido `external_web` atraviese como instrucción
+- un subagente escale por encima del padre
+- un timeout se confirme «por si acaso»
+
+Versión: `0.2.0` — content boundary + `RefundPayment` fail-closed.

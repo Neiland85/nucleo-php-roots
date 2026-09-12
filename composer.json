@@ -3,6 +3,7 @@
   "description": "NÚCLEO: agentes operadores de capacidades, no propietarios de autoridad. Kernel PHP de la tesis de fronteras.",
   "type": "library",
   "license": "proprietary",
+  "version": "0.2.0",
   "require": {
     "php": ">=8.2"
   },

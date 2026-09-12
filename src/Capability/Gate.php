@@ -19,7 +19,8 @@ final class Gate
             return Decision::deny('capability-allowlist');
         }
 
-        if ($capability === 'CapturePayment' && $agent !== 'payment.agent') {
+        if (($capability === 'CapturePayment' || $capability === 'RefundPayment')
+            && $agent !== 'payment.agent') {
             return Decision::deny('capability-allowlist');
         }
 
