@@ -58,6 +58,29 @@ final class PipeTest extends TestCase
         self::assertFalse($this->hasStep($r['steps'], 'capability'));
     }
 
+    public function test_external_web_is_blocked_at_content_boundary(): void
+    {
+        $pipe = new Pipe();
+        $r = $pipe->run(
+            'injection',
+            'rental.supervisor',
+            'RefundPayment',
+            'demo-006',
+            '2026-10-25',
+            new PaymentStub('ok'),
+            null,
+            'external_web',
+            'untrusted',
+        );
+        self::assertTrue($r['blocked']);
+        self::assertNull($r['reservation']);
+        self::assertSame('untrusted-content', $r['evidence']->policy);
+        self::assertSame('DENIED', $r['evidence']->authorization);
+        self::assertTrue($this->hasStep($r['steps'], 'boundary'));
+        self::assertFalse($this->hasStep($r['steps'], 'capability'));
+        self::assertStringContainsString('no es la frontera', $r['message']);
+    }
+
     /** @param list<array{id:string,label:string,verdict:string,detail:string}> $steps */
     private function hasStep(array $steps, string $id): bool
     {

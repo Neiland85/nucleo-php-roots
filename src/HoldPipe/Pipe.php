@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Clarity\Nucleo\HoldPipe;
 
 use Clarity\Nucleo\Capability\Gate;
+use Clarity\Nucleo\Content\Boundary;
 use Clarity\Nucleo\Evidence\Hash;
 use Clarity\Nucleo\Evidence\Record;
 
@@ -15,8 +16,10 @@ final class Pipe
 
     private int $seq = 1;
 
-    public function __construct(private readonly Gate $gate = new Gate())
-    {
+    public function __construct(
+        private readonly Gate $gate = new Gate(),
+        private readonly Boundary $content = new Boundary(),
+    ) {
     }
 
     public function reset(): void
@@ -42,6 +45,8 @@ final class Pipe
         string $date,
         PaymentPort $payment,
         ?string $parentCapability = null,
+        ?string $provenance = null,
+        string $trust = 'trusted',
     ): array {
         $at = time();
         $steps = [];
@@ -50,8 +55,38 @@ final class Pipe
             'id' => 'intent',
             'label' => 'Intención',
             'verdict' => 'pass',
-            'detail' => $agent.' propone '.$capability,
+            'detail' => $provenance === null
+                ? $agent.' propone '.$capability
+                : $agent.' analiza '.$provenance.' · el modelo acaba proponiendo '.$capability,
         ];
+
+        if ($provenance !== null) {
+            $steps[] = [
+                'id' => 'content',
+                'label' => 'Contenido',
+                'verdict' => 'warn',
+                'detail' => $provenance.' · instrucción oculta «'.$capability.'». El usuario no atacó al modelo.',
+            ];
+            $admitted = $this->content->admit($provenance, $trust);
+            if (!$admitted->allowed) {
+                $steps[] = [
+                    'id' => 'boundary',
+                    'label' => 'Content boundary',
+                    'verdict' => 'block',
+                    'detail' => 'provenance='.$provenance.' · trust='.$trust.' · retrieved ≠ trusted',
+                ];
+
+                return $this->blocked(
+                    $steps,
+                    $agent,
+                    $capability,
+                    $key,
+                    $at,
+                    $admitted->policy,
+                    'Contenido no confiable no otorga capacidad. El LLM no es la frontera. El dominio no se enteró.',
+                );
+            }
+        }
 
         $decision = $this->gate->decide($agent, $capability, $parentCapability);
 
